@@ -1,0 +1,4 @@
+{
+    "sketch": "pressureSensor.ino",
+    "board": "arduino:avr:uno"
+}
