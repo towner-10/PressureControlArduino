@@ -1,7 +1,11 @@
 #include "NoDelay.h"
 
+#define PUMP_DELAY 500
+
 unsigned long controlLoopStartTime;
 unsigned long controlLoopInterval = 180000;
+
+unsigned long pumpDelayStartTime = 0;
 
 unsigned long startTime;
 unsigned long interval;
@@ -24,7 +28,7 @@ void outputPSI()
 
 void startPump(long time)
 {
-  if (!pumpRunning)
+  if (!pumpRunning && millis() - pumpDelayStartTime >= PUMP_DELAY)
   {
     interval = time;
     startTime = millis();
@@ -51,9 +55,8 @@ void controlLoop()
     float currentPSI = getPSI();
     float error = targetPSI - currentPSI;
 
-    if (abs(error) > 0.4)
+    if (error > 0.4)
     {
-      // check if pump active
       // activate pump for 1 second
       startPump(1000);
     }
@@ -61,6 +64,8 @@ void controlLoop()
   else
   {
     updateControlLoop.stop();
+    digitalWrite(pumpPin, HIGH);
+    pumpRunning = false;
   }
 }
 
@@ -82,6 +87,7 @@ void loop()
     {
       digitalWrite(pumpPin, HIGH);
       pumpRunning = false;
+      pumpDelayStartTime = millis();
     }
   }
   if (Serial.available() > 0)
