@@ -17,12 +17,17 @@ void outputPSI();
 void controlLoop();
 
 bool pumpRunning = false;
+float targetPSI = 0.0;
 
 noDelay printPSI(500, outputPSI);
 noDelay updateControlLoop(100, controlLoop, false);
 
 void outputPSI()
 {
+  Serial.print("Target:");
+  Serial.print(targetPSI);
+  Serial.print(",");
+  Serial.print("Current:");
   Serial.println(getPSI());
 }
 
@@ -51,16 +56,9 @@ void controlLoop()
   if (millis() - controlLoopStartTime <= controlLoopInterval)
   {
     // Control Loop Code Here
-    float targetPSI = (1.0 / 12.0) * ((float)(millis() - controlLoopStartTime) / 1000.0);
+    targetPSI = (1.0 / 12.0) * ((float)(millis() - controlLoopStartTime) / 1000.0);
     float currentPSI = getPSI();
     float error = targetPSI - currentPSI;
-
-    /*if (millis() - controlLoopStartTime <= controlLoopInterval / 3) {
-      PUMP_DELAY = 1000;
-    }
-    else {
-      PUMP_DELAY = 500;
-    }*/
 
     if (error > 0.4)
     {
@@ -73,6 +71,7 @@ void controlLoop()
     updateControlLoop.stop();
     digitalWrite(pumpPin, HIGH);
     pumpRunning = false;
+    targetPSI = 0;
   }
 }
 
@@ -85,8 +84,8 @@ void setup()
 
 void loop()
 {
-  printPSI.update();
   updateControlLoop.update();
+  printPSI.update();
 
   if (pumpRunning)
   {
